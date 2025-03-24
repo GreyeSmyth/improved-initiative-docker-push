@@ -1,0 +1,94 @@
+name: Create and publish an Improved Initiative Docker image if a new release exists
+
+# Action may be triggered manually, but will normally run daily at 03:37
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 3 * * *'
+
+# Define Container registry domain and name for Docker image
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Main job to actually build and push
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    
+    steps:
+      # Checkout latest Improved Initiative development branch
+      - name: Checkout Improved Initiative
+        uses: actions/checkout@v4
+        with:
+          repository: 'cynicaloptimist/improved-initiative'
+
+      # Read and print version number from II's package.json
+      - name: Read current II version
+        id: current-version
+        uses: martinbeentjes/npm-get-version-action@v1
+      - run: echo 'Got version number of ${{ steps.current-version.outputs.current-version }}.'
+
+      # Check whether found version has already been pushed to registry
+      - name: Check for pushed package
+        id: version-check
+        uses: tyriis/docker-image-tag-exists@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          repository: ${{ env.IMAGE_NAME }}
+          tag: ${{ steps.current-version.outputs.current-version }}
+
+      # If it's a new version, generate tags and labels using new version number
+      - name: Generate Docker image metadata
+        if: steps.version-check.outputs.tag == 'not found'
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=semver,pattern={{version}},value=${{ steps.current-version.outputs.current-version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.current-version.outputs.current-version }}
+
+      # Log into the registry, build and push with prod env and generated metadata
+      - name: Log into container registry
+        if: steps.version-check.outputs.tag == 'not found'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        if: steps.version-check.outputs.tag == 'not found'
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            NODE_ENV=production
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+      # Generate attestation for the sake of completeness
+      - name: Generate artifact attestation
+        if: steps.version-check.outputs.tag == 'not found'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  # Keepalive job to preemptively reenable schedule due to lack of changes
+  workflow-keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: liskin/gh-workflow-keepalive@v1
