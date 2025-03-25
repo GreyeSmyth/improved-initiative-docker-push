@@ -34,7 +34,13 @@ jobs:
         uses: martinbeentjes/npm-get-version-action@v1.3.1
       - run: echo 'Got version number of ${{ steps.current-version.outputs.current-version }}.'
 
-      # Check whether found version has already been pushed to registry
+      # Log into registry and check if latest has already been pushed
+      - name: Log into container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Check for pushed package
         id: version-check
         uses: tyriis/docker-image-tag-exists@v2.1.0
@@ -55,14 +61,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.current-version.outputs.current-version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.current-version.outputs.current-version }}
 
-      # Log into the registry, build and push with prod env and generated metadata
-      - name: Log into container registry
-        if: steps.version-check.outputs.tag == 'not found'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # Build and push with prod env and generated metadata
       - name: Build and push Docker image
         if: steps.version-check.outputs.tag == 'not found'
         id: push
