@@ -22,7 +22,9 @@ jobs:
       id-token: write
     
     steps:
-      # Checkout latest Improved Initiative development branch
+      # Checkout latest Improved Initiative development branch and custom Dockerfile
+      - name: Checkout local files
+        uses: actions/checkout@v4
       - name: Checkout Improved Initiative
         uses: actions/checkout@v4
         with:
