@@ -23,14 +23,14 @@ jobs:
     
     steps:
       # Checkout latest Improved Initiative development branch and custom Dockerfile
-      - name: Checkout local files
-        uses: actions/checkout@v4
-        with:
-          path: hydrogen
       - name: Checkout Improved Initiative
         uses: actions/checkout@v4
         with:
           repository: 'cynicaloptimist/improved-initiative'
+      - name: Checkout local files
+        uses: actions/checkout@v4
+        with:
+          path: hydrogen
       - run: ls
       
       # Read and print version number from II's package.json
