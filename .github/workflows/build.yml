@@ -23,20 +23,20 @@ jobs:
     
     steps:
       # Checkout latest Improved Initiative development branch and custom Dockerfile
+      - name: Checkout local files
+        uses: actions/checkout@v4
       - name: Checkout Improved Initiative
         uses: actions/checkout@v4
         with:
           repository: 'cynicaloptimist/improved-initiative'
-      - name: Checkout local files
-        uses: actions/checkout@v4
-        with:
-          path: hydrogen
-      - run: ls
+          path: app
       
       # Read and print version number from II's package.json
       - name: Read current II version
         id: current-version
         uses: martinbeentjes/npm-get-version-action@v1.3.1
+        with:
+          path: app
       - run: echo 'Got version number of ${{ steps.current-version.outputs.current-version }}.'
 
       # Log into registry and check if latest has already been pushed
@@ -72,8 +72,8 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: 'hydrogen/hydrogen-Dockerfile'
+          context: app
+          file: './hydrogen-Dockerfile'
           build-args: |
             NODE_ENV=production
           push: true
