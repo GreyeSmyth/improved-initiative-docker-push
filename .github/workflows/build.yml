@@ -61,6 +61,13 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.current-version.outputs.current-version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.current-version.outputs.current-version }}
 
+      # Setup NodeJS LTS properly before building
+      - name: NodeJS setup
+        if: steps.version-check.outputs.tag == 'not found'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
       # Build and push with prod env and generated metadata
       - name: Build and push Docker image
         if: steps.version-check.outputs.tag == 'not found'
