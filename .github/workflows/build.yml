@@ -31,8 +31,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'cynicaloptimist/improved-initiative'
-      - run: ls ./hydrogen
-
+      - run: ls
+      
       # Read and print version number from II's package.json
       - name: Read current II version
         id: current-version
