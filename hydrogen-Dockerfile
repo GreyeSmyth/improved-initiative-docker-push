@@ -5,11 +5,9 @@ ENV PATH=$PATH:/home/node/.npm-global/bin
 RUN npm install -g grunt
 
 WORKDIR /usr/src/app
-COPY package*.json ./
-RUN mkdir ./public
-RUN npm install
-
 COPY . .
+
+RUN npm install
 RUN grunt --no-color copy
 
 ENV NODE_ENV=${NODE_ENV}
