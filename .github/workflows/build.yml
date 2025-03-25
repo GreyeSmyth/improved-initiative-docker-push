@@ -56,7 +56,7 @@ jobs:
 
       # If it's a new version, generate tags and labels using new version number
       - name: Generate Docker image metadata
-        if: steps.version-check.outputs.tag == 'not found'
+        if: ${{ steps.version-check.outputs.tag == 'not found' || github.event_name == 'workflow_dispatch' }}
         id: metadata
         uses: docker/metadata-action@v5
         with:
@@ -68,7 +68,7 @@ jobs:
 
       # Build and push with dev env and generated metadata
       - name: Build and push Docker image
-        if: steps.version-check.outputs.tag == 'not found'
+        if: ${{ steps.version-check.outputs.tag == 'not found' || github.event_name == 'workflow_dispatch' }}
         id: push
         uses: docker/build-push-action@v6
         with:
@@ -80,7 +80,7 @@ jobs:
 
       # Generate attestation for the sake of completeness
       - name: Generate artifact attestation
-        if: steps.version-check.outputs.tag == 'not found'
+        if: ${{ steps.version-check.outputs.tag == 'not found' || github.event_name == 'workflow_dispatch' }}
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
