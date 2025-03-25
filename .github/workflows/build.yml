@@ -31,13 +31,13 @@ jobs:
       # Read and print version number from II's package.json
       - name: Read current II version
         id: current-version
-        uses: martinbeentjes/npm-get-version-action@v1
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
       - run: echo 'Got version number of ${{ steps.current-version.outputs.current-version }}.'
 
       # Check whether found version has already been pushed to registry
       - name: Check for pushed package
         id: version-check
-        uses: tyriis/docker-image-tag-exists@v2
+        uses: tyriis/docker-image-tag-exists@v2.1.0
         with:
           registry: ${{ env.REGISTRY }}
           repository: ${{ env.IMAGE_NAME }}
