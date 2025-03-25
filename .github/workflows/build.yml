@@ -66,7 +66,7 @@ jobs:
             type=semver,pattern={{version}},value=${{ steps.current-version.outputs.current-version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.current-version.outputs.current-version }}
 
-      # Build and push with prod env and generated metadata
+      # Build and push with dev env and generated metadata
       - name: Build and push Docker image
         if: steps.version-check.outputs.tag == 'not found'
         id: push
@@ -74,8 +74,6 @@ jobs:
         with:
           context: app
           file: './hydrogen-Dockerfile'
-          build-args: |
-            NODE_ENV=production
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
