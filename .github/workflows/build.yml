@@ -70,8 +70,8 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: app
-          file: hydrogen-Dockerfile
+          context: './app'
+          file: './hydrogen-Dockerfile'
           build-args: |
             NODE_ENV=production
           push: true
